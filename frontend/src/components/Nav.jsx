@@ -7,6 +7,7 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useDispatch } from "react-redux";
 import { logout } from "../redux/user/userSlice"; 
 import { persistor } from "../redux/store"; 
+import { FaUserCircle } from "react-icons/fa";
 
 const dummyUserImage = "https://via.placeholder.com/40"; // Dummy user image URL
 
@@ -27,11 +28,12 @@ const NavLinks = ({ user, handleLogout, isMobile }) => {
         <div className="flex items-center gap-3">
           {!isMobile && ( // Hide the profile image on mobile, but still show it on full screen
            <NavLink to="/my-account">
-           <img
+           {/* <img
               src={dummyUserImage}
               alt="User"
               className="w-10 h-10 rounded-full object-cover"
-            />
+            /> */}
+            <FaUserCircle className="text-green-500 bg-white w-10 h-10 rounded-full object-cover"/>
             </NavLink>
           )}
           <button

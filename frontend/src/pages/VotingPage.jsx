@@ -4,9 +4,14 @@ import abi from "../contractJson/voting.json";
 import { FaVoteYea, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import VotingAnalytics from "../components/VotingAnalytics";
 import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
+import { updateIsVoted } from "../redux/user/userSlice";
+import { db } from "../firebase";
+import { doc, updateDoc } from "firebase/firestore";
 
 const VotingPage = () => {
   const user = useSelector((state) => state.user.userData);
+  const dispatch = useDispatch();
 
   const [state, setState] = useState({
     provider: null,
@@ -19,9 +24,9 @@ const VotingPage = () => {
   const [votedCandidate, setVotedCandidate] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const candidateImages = [
-    "https://img.freepik.com/free-vector/smiling-cartoon-character-face_1308-173528.jpg",
-    "https://img.freepik.com/premium-vector/smiling-boy-tuxedo_1639-59735.jpg",
-    "https://img.freepik.com/free-vector/handsome-boy-with-brown-eyes-black-hair_1308-160536.jpg",
+    "/WhatsApp Image 2024-10-19 at 22.44.08_c4f0acff.jpg",
+    "/WhatsApp Image 2024-10-19 at 12.29.08_1d11f3d4.jpg",
+    "/WhatsApp Image 2024-10-19 at 22.50.19_1e42a325.jpg",
   ];
 
   useEffect(() => {
@@ -79,6 +84,15 @@ const VotingPage = () => {
         const transaction = await contract.vote(index);
         await transaction.wait();
         setVotedCandidate(candidates[index].name);
+
+        // Update isVoted in Firestore
+        const userDocRef = doc(db, "users", user.votingId);
+        await updateDoc(userDocRef, {
+          isVoted: true,
+        });
+
+        // Dispatch the action to update the Redux store
+        dispatch(updateIsVoted(true));
         setVoteSuccess(true);
       }
     } catch (error) {
@@ -115,7 +129,7 @@ const VotingPage = () => {
               >
                 <img
                   src={candidateImages[index]} // Each candidate has a different image
-                  className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover mb-4"
+                  className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover object-center mb-4"
                   alt={candidate.name}
                 />
                 <h3 className="text-lg md:text-xl font-bold mb-2">
