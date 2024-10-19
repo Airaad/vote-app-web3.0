@@ -1,38 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const dummyUserImage = "https://via.placeholder.com/40"; // Dummy user image URL
 
 const NavLinks = ({ user, handleLogout, isMobile }) => {
+  const navigate = useNavigate();
+
   return (
     <>
       <NavLink to="/home" className="text-white font-semibold">
         Home
       </NavLink>
+      {isMobile && user && (
+        <NavLink to="/my-account" className="text-white font-semibold">
+          My Account
+        </NavLink>
+      )}
       {user && (
         <div className="flex items-center gap-3">
           {!isMobile && ( // Hide the profile image on mobile, but still show it on full screen
-            <img
+           <NavLink to="/my-account">
+           <img
               src={dummyUserImage}
               alt="User"
               className="w-10 h-10 rounded-full object-cover"
             />
+            </NavLink>
           )}
           <button
             onClick={handleLogout}
-            className="w-20 h-9 bg-orange-500 rounded-xl font-bold text-white"
+            className="w-20 h-9 bg-red-500 rounded-xl font-bold text-white"
           >
             Log Out
           </button>
         </div>
-      )}
-      {!user && (
-        <NavLink to="/login">
-          <button className="w-20 h-9 bg-green-500 rounded-xl font-bold text-white">
-            Sign In
-          </button>
-        </NavLink>
       )}
     </>
   );
@@ -47,10 +52,26 @@ export default function Nav() {
     setIsOpen(!isOpen);
   };
 
-  const handleLogout = () => {
-    setUser(false); // Set user to false on logout
-    setIsOpen(false); // Close the menu after logout
-  };
+  const handleLogout = async () => {
+    try {
+        await signOut(auth);
+        navigate("/");
+    } catch (error) {
+        console.error("Error logging out: ", error);
+    }
+};
+  useEffect(() => {
+    // Monitor Firebase Authentication state
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser); // Set the authenticated user
+      } else {
+        setUser(null); // Reset user to null if not logged in
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup subscription on component unmount
+  }, []);
 
   return (
     <>

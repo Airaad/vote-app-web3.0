@@ -20,7 +20,6 @@ const VotingPage = () => {
     "https://img.freepik.com/free-vector/smiling-cartoon-character-face_1308-173528.jpg",
     "https://img.freepik.com/premium-vector/smiling-boy-tuxedo_1639-59735.jpg",
     "https://img.freepik.com/free-vector/handsome-boy-with-brown-eyes-black-hair_1308-160536.jpg",
-    // Add more image URLs here for each candidate
   ];
 
   useEffect(() => {
@@ -157,7 +156,9 @@ const VotingPage = () => {
           </div>
         </div>
       )}
+      <div className="bg-white shadow-lg rounded-lg">
       <VotingAnalytics/>
+      </div>
     </div>
   );
 };

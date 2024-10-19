@@ -3,6 +3,8 @@ import { ethers } from "ethers";
 import abi from "../contractJson/voting.json"; // Ensure your ABI file path is correct
 import { Pie, Bar } from "react-chartjs-2";
 import { Chart, ArcElement, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from "chart.js";
+import { FaVoteYea } from 'react-icons/fa'; // Icon for votes
+import { MdPerson } from 'react-icons/md';  // Icon for candidate name
 
 Chart.register(ArcElement, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale); // Register Chart.js components
 
@@ -75,30 +77,50 @@ const VotingAnalytics = () => {
   };
 
   return (
-    <div className="p-10">
-      <h1 className="text-3xl font-bold mb-6">Voting Analytics</h1>
-      <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="p-5 md:p-20">
+      <h1 className="text-4xl font-medium mb-6">Voting Analytics</h1>
+      <div className="bg-white p-6 rounded-lg shadow-lg">
         {candidates.length > 0 ? (
           <>
-            <div className="flex justify-around mb-6">
-              <div style={{ width: '40%', height: '300px' }}>
+            <div className="flex flex-col items-center gap-5 lg:flex-row lg:justify-around">
+              <div className="w-[80%] lg:w-[60%] h-[300px]">
                 <Pie data={pieChartData} />
               </div>
-              <div style={{ width: '40%', height: '300px' }}>
+              <div className="w-full lg:w-[60%] ">
                 <Bar data={barChartData} />
               </div>
             </div>
             <div className="mt-6">
-              {candidates.map((candidate, index) => (
-                <div key={index} className="flex justify-between items-center bg-orange-400 rounded-lg p-4 mb-2">
-                  <span className="text-lg font-bold">{candidate.name}</span>
-                  <span className="text-lg">{candidate.voteCount} votes</span>
-                </div>
-              ))}
-            </div>
+      <table className="min-w-full bg-white shadow-lg rounded-lg">
+        <thead>
+          <tr className="bg-blue-500 text-white">
+            <th className="py-3 px-6 text-left">
+              <MdPerson className="inline-block mr-2 text-lg" />
+              Candidate
+            </th>
+            <th className="py-3 px-6 text-right">
+              <FaVoteYea className="inline-block mr-2 text-lg" />
+              Votes
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {candidates.map((candidate, index) => (
+            <tr key={index} className="border-b border-gray-200 hover:bg-gray-100">
+              <td className="py-4 px-6 text-lg font-semibold text-gray-700">
+                {candidate.name}
+              </td>
+              <td className="py-4 px-6 text-lg font-bold text-right text-green-600">
+                {candidate.voteCount} votes
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
           </>
         ) : (
-          <p>No candidates available.</p>
+          <p className="text-red-500">Connect Your Metamask Account</p>
         )}
       </div>
     </div>

@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase"; 
+import { auth, db } from "../firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
 const Login = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [votingId, setVotingId] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   // Initialize reCAPTCHA
   const setupRecaptcha = () => {
@@ -24,7 +26,6 @@ const Login = () => {
             console.log("Recaptcha verified");
           },
           "expired-callback": () => {
-            console.log("Recaptcha expired");
             setError("Recaptcha expired. Please try again.");
           },
         },
@@ -45,9 +46,10 @@ const Login = () => {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         const phoneNumber = userData.phoneNumber;
-        alert(
+        setModalMessage(
           `Valid user found: ${userData.name}. Sending OTP to ${phoneNumber}`,
         );
+        setShowModal(true); // Show modal with message
 
         // Set up reCAPTCHA
         setupRecaptcha();
@@ -62,7 +64,8 @@ const Login = () => {
         setConfirmationResult(confirmation);
         setOtpSent(true);
         setError(""); // Clear any previous errors
-        alert("OTP sent to your phone");
+        setModalMessage("OTP sent to your phone");
+        setShowModal(true); // Show modal with message
       } else {
         setError("Invalid voting ID. Please try again.");
       }
@@ -80,12 +83,18 @@ const Login = () => {
 
     try {
       await confirmationResult.confirm(otp);
-      alert("User signed in successfully");
+      setModalMessage("User signed in successfully");
+      setShowModal(true); // Show modal with message
       navigate("/home"); // Redirect to Home page
     } catch (error) {
       console.error("Error verifying OTP: ", error);
       setError("Invalid OTP. Please try again.");
     }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage("");
   };
 
   return (
@@ -110,9 +119,14 @@ const Login = () => {
         />
         <button
           onClick={handleSendOtp}
-          className="w-full bg-green-400 text-white p-3 rounded-lg hover:bg-green-600 transition duration-300"
+          className={`w-full p-3 rounded-lg transition duration-300 ${
+            otpSent
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-400 hover:bg-green-600 text-white"
+          }`}
+          disabled={otpSent}
         >
-          Send OTP
+          {otpSent ? "OTP Sent" : "Send OTP"}
         </button>
 
         {/* Error Message */}
@@ -128,7 +142,7 @@ const Login = () => {
               placeholder="Enter OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
-              className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
+              className="w-full p-3 my-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
             />
             <button
               onClick={handleVerifyOtp}
@@ -139,6 +153,22 @@ const Login = () => {
           </>
         )}
       </div>
+
+      {/* Modal Popup */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-20">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+            <h2 className="text-xl font-semibold mb-4">Notification</h2>
+            <p>{modalMessage}</p>
+            <button
+              onClick={closeModal}
+              className="mt-6 bg-green-400 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
