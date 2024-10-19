@@ -3,8 +3,11 @@ import { ethers } from "ethers";
 import abi from "../contractJson/voting.json";
 import { FaVoteYea, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import VotingAnalytics from "../components/VotingAnalytics";
+import { useSelector } from "react-redux";
 
 const VotingPage = () => {
+  const user = useSelector((state) => state.user.userData);
+
   const [state, setState] = useState({
     provider: null,
     signer: null,
@@ -15,7 +18,6 @@ const VotingPage = () => {
   const [voteSuccess, setVoteSuccess] = useState(false);
   const [votedCandidate, setVotedCandidate] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
   const candidateImages = [
     "https://img.freepik.com/free-vector/smiling-cartoon-character-face_1308-173528.jpg",
     "https://img.freepik.com/premium-vector/smiling-boy-tuxedo_1639-59735.jpg",
@@ -31,7 +33,9 @@ const VotingPage = () => {
         const { ethereum } = window;
 
         if (!ethereum) {
-          alert("MetaMask is not installed. Please install it to use this app.");
+          alert(
+            "MetaMask is not installed. Please install it to use this app.",
+          );
           return;
         }
 
@@ -47,7 +51,11 @@ const VotingPage = () => {
 
           const provider = new ethers.BrowserProvider(ethereum);
           const signer = await provider.getSigner();
-          const contract = new ethers.Contract(contractAddress, contractAbi, signer);
+          const contract = new ethers.Contract(
+            contractAddress,
+            contractAbi,
+            signer,
+          );
           setState({ provider, signer, contract });
 
           const candidatesData = await contract.getAllVotesOfCandiates();
@@ -96,7 +104,9 @@ const VotingPage = () => {
         </div>
       ) : (
         <>
-          <h1 className="text-center text-5xl font-semibold my-8 text-white">Vote for Your Candidate</h1>
+          <h1 className="text-center text-5xl font-semibold my-8 text-white">
+            Vote for Your Candidate
+          </h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {candidates.map((candidate, index) => (
               <div
@@ -108,12 +118,19 @@ const VotingPage = () => {
                   className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover mb-4"
                   alt={candidate.name}
                 />
-                <h3 className="text-lg md:text-xl font-bold mb-2">{candidate.name}</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-2">
+                  {candidate.name}
+                </h3>
                 <button
                   onClick={() => voteForCandidate(index)}
-                  className="flex items-center gap-2 py-2 px-4 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm md:text-base"
+                  className={`flex items-center gap-2 py-2 px-4 ${
+                    user.isVoted
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-500 hover:bg-green-600"
+                  } text-white rounded-lg text-sm md:text-base`}
+                  disabled={user.isVoted} // Disable if user has voted
                 >
-                  <FaVoteYea /> Vote
+                  <FaVoteYea /> {user.isVoted ? "Already Voted" : "Vote"}
                 </button>
               </div>
             ))}
@@ -157,7 +174,7 @@ const VotingPage = () => {
         </div>
       )}
       <div className="bg-white shadow-lg rounded-lg">
-      <VotingAnalytics/>
+        <VotingAnalytics />
       </div>
     </div>
   );

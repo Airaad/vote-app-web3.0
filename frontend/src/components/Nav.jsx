@@ -4,6 +4,9 @@ import { Menu, X } from "lucide-react";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/user/userSlice"; 
+import { persistor } from "../redux/store"; 
 
 const dummyUserImage = "https://via.placeholder.com/40"; // Dummy user image URL
 
@@ -44,6 +47,8 @@ const NavLinks = ({ user, handleLogout, isMobile }) => {
 };
 
 export default function Nav() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState(false); // Set user to true for demonstration
   const userImage = ""; // Replace with user image URL if available
@@ -54,12 +59,21 @@ export default function Nav() {
 
   const handleLogout = async () => {
     try {
-        await signOut(auth);
-        navigate("/");
+      // Log out from Firebase
+      await signOut(auth);
+
+      // Clear the Redux store by dispatching the logout action
+      dispatch(logout());
+
+      // Purge persisted state from localStorage (or sessionStorage)
+      persistor.purge();
+
+      // Navigate back to the login page or home page
+      navigate("/");
     } catch (error) {
-        console.error("Error logging out: ", error);
+      console.error("Error logging out: ", error);
     }
-};
+  };
   useEffect(() => {
     // Monitor Firebase Authentication state
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {

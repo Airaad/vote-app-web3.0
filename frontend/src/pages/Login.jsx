@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { useDispatch } from "react-redux"; // Import useDispatch from Redux
+import { setUser } from "../redux/user/userSlice"; // Import the setUser action
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch(); // Create a dispatch instance
   const [votingId, setVotingId] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState(null);
@@ -82,10 +85,30 @@ const Login = () => {
     }
 
     try {
-      await confirmationResult.confirm(otp);
-      setModalMessage("User signed in successfully");
-      setShowModal(true); // Show modal with message
-      navigate("/home"); // Redirect to Home page
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user; // Get the authenticated user from Firebase
+
+      // Fetch the user data from Firestore
+      const userDocRef = doc(db, "users", votingId); // Assume votingId is document ID
+      const userDoc = await getDoc(userDocRef);
+
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+
+        // Dispatch the user data to the Redux store
+        dispatch(
+          setUser({
+            name: userData.name,
+            phoneNumber: userData.phoneNumber,
+            votingId: votingId,
+            isVoted: userData.isVoted,
+          }),
+        );
+        setShowModal(true); // Show modal with message
+        navigate("/home"); // Redirect to Home page
+      } else {
+        setError("User data not found.");
+      }
     } catch (error) {
       console.error("Error verifying OTP: ", error);
       setError("Invalid OTP. Please try again.");
@@ -119,11 +142,7 @@ const Login = () => {
         />
         <button
           onClick={handleSendOtp}
-          className={`w-full p-3 rounded-lg transition duration-300 ${
-            otpSent
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-green-400 hover:bg-green-600 text-white"
-          }`}
+          className={`w-full p-3 rounded-lg transition duration-300 ${otpSent ? "bg-gray-400 cursor-not-allowed" : "bg-green-400 hover:bg-green-600 text-white"}`}
           disabled={otpSent}
         >
           {otpSent ? "OTP Sent" : "Send OTP"}
