@@ -8,8 +8,8 @@ export default function Home() {
   return (
     <div>
       <SlidingCarousal />
-      <VotingAnalytics />
       <Features />
+      <VotingAnalytics />
       <FAQ />
     </div>
   );
